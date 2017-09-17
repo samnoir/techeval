@@ -4,6 +4,8 @@
 from flask import Flask
 from flask import request
 from flask import jsonify
+from flask_pymongo import PyMongo
+import os
 
 
 class InvalidUsage(Exception):
@@ -22,6 +24,14 @@ class InvalidUsage(Exception):
         return rv
 
 app = Flask(__name__)
+app.config['MONGO_HOST'] = 'ds135624.mlab.com'
+app.config['MONGO_PORT'] = 35624
+app.config['MONGO_DBNAME'] = 'techeval'
+app.config['MONGO_USERNAME'] = os.environ.get('MONGO_USERNAME') or 'rouser'
+app.config['MONGO_PASSWORD'] = os.environ.get('MONGO_PASSWORD') or 'ropw'
+
+# mongodb://<dbuser>:<dbpassword>@ds135624.mlab.com:35624/techeval
+mongo = PyMongo(app)
 
 @app.errorhandler(InvalidUsage)
 def handle_invalid_usage(error):
@@ -37,7 +47,12 @@ def hello_world():
 def history():
     print(request.method)
     if request.method == 'POST':
-        return 'POST is successful on /history!'
+        data = request.get_json()
+        try:
+            in_id = mongo.db.transactions.insert_one(data).inserted_id
+            return 'POST is successful on /history with id={}'.format(in_id)
+        except:
+            return 'POST is fail on /history!', 500
     elif request.method == 'GET':
         tuid = request.args.get('tuid', None)
         wuid = request.args.get('wuid', None)
