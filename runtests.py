@@ -3,6 +3,8 @@ import flask_testing
 from flask import Flask
 import urllib
 import json
+import time
+
 
 class MyTest(flask_testing.LiveServerTestCase):
     """
@@ -48,7 +50,10 @@ class MyTest(flask_testing.LiveServerTestCase):
         print(self.get_history_url())
         req = urllib.request.Request(self.get_history_url(), data)
         req.add_header('Content-Type', 'application/json')
+        t = time.time()
         f = urllib.request.urlopen(req)
+        t = time.time() - t
+        print("ELAPSED =", t)
         self.assertEqual(f.code, 200)
         print(f.read().decode('utf-8'))
         f.close()

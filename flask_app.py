@@ -74,12 +74,27 @@ def history():
         wuid = request.args.get('wuid', None)
         if tuid:
             print('GET with TUID=', tuid)
-            cur = db.transactions.find({'$or': [{"tuid": tuid}, {"ref_tuid": tuid}]}).sort("timestamp", pymongo.DESCENDING)
+            cur = db.transactions.find({'$or': [{"tuid": tuid}, {"ref_tuid": tuid}]}).sort("timestamp", pymongo.ASCENDING)
             results = [clean_results(x) for x in cur]
             return jsonify(results)
         if wuid:
             print('WUID=', wuid)
-            # Sort by tuid
+            cur = db.transactions.find({'$or': [{"source": wuid}, {"destination": wuid}]}).sort("tuid", pymongo.DESCENDING)
+            tmpresults = [clean_results(x) for x in cur]
+            # In tmpresults, transactions with the same tuid will be next to each other.
+            if tmpresults:
+                results = [[tmpresults[0]]]
+                for i in range(1, len(tmpresults)):
+                    if results[-1][0]["tuid"] == tmpresults[i]["tuid"]:
+                        results[-1].append(tmpresults[i])
+                    else:
+                        results[-1].sort(key=lambda x: x["timestamp"]) # sort the list with same tuids, before adding a new tuid list
+                        results.append([tmpresults[i]])
+                results[-1].sort(key=lambda x: x["timestamp"]) # Sorting the final element that was not sorted while in the loop
+                results = sorted(results, key=lambda x: x[0]["timestamp"], reverse=True) # Sorting the outer loop by timestamp
+            else:
+                results = []
+            return jsonify(results)
         if tuid and wuid:
             raise(InvalidUsage(message='What am I? A teapot?', status_code=418))
         return 'GET received on /history!'
