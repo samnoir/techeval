@@ -1,7 +1,7 @@
 import csv
 import sys
 import os
-import simplejson as json
+import json
 import urllib.request
 import time
 import pprint
@@ -9,7 +9,7 @@ import re
 
 HISTORY_URL="http://173.255.230.48:4000/history"
 HISTORY_URL="http://cheesydong.pythonanywhere.com/history"
-
+HISTORY_URL="http://127.0.0.1:5000/history"
 def numerize(d):
     for key, value in list(d.items()):
         if key == 'amt':
@@ -41,7 +41,7 @@ class MyFilter:
     def __iter__(self):
         return self
 
-    
+
 start_time = time.time()
 with open(sys.argv[1], encoding='latin-1') as csvfile:
     reader = csv.DictReader(csvfile)
