@@ -68,7 +68,6 @@ def clean_results(x):
 
 @app.route('/history', methods=['GET', 'POST'])
 def history():
-    print(request.method)
     if request.method == 'POST':
         data = request.get_json()
         try:
